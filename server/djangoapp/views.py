@@ -39,13 +39,53 @@ def login_user(request):
     return JsonResponse(data)
 
 # Create a `logout_request` view to handle sign out request
-# def logout_request(request):
-# ...
+# Create a `logout_request` view to handle sign out request
+def logout_request(request):
+    logout(request)
+    data = {"userName": ""}
+    return JsonResponse(data)
+
 
 # Create a `registration` view to handle sign up request
-# @csrf_exempt
-# def registration(request):
-# ...
+@csrf_exempt
+def registration(request):
+    data = json.loads(request.body)
+    username = data["userName"]
+    password = data["password"]
+    first_name = data["firstName"]
+    last_name = data["lastName"]
+    email = data["email"]
+    # Check if a user with the provided username already exists
+    if User.objects.filter(username=username).exists():
+        return JsonResponse({"status": "User already exists"})
+
+    # Create a new user with the provided username and password
+    user = User.objects.create_user(
+        username=username,
+        first_name=first_name,
+        last_name=last_name,
+        password=password,
+        email=email,
+    )
+
+    # Login the user
+    login(request, user)
+    data = {"userName": username, "status": "Authenticated"}
+    return JsonResponse(data)
+
+def get_cars(request):
+    count = CarMake.objects.filter().count()
+    print(count)
+    if count == 0:
+        initiate()
+    car_models = CarModel.objects.select_related("car_make")
+    cars = []
+    for car_model in car_models:
+        cars.append({"CarModel": car_model.name, "CarMake": car_model.car_make.name})
+    return JsonResponse({"CarModels": cars})
+
+
+
 
 # # Update the `get_dealerships` view to render the index page with
 # a list of dealerships
